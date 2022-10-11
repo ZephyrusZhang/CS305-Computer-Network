@@ -1,9 +1,9 @@
 import json
+import os
 import random
 import string
-from typing import *
+
 import config
-import mimetypes
 from framework import HTTPServer, HTTPRequest, HTTPResponse
 
 
@@ -17,9 +17,32 @@ def default_handler(server: HTTPServer, request: HTTPRequest, response: HTTPResp
     print(f"calling default handler for url {request.request_target}")
 
 
+suffix_to_mime = {
+    'txt': 'text/plain',
+    'html': 'text/html',
+    'css': 'tex/css',
+    'js': 'text/javascript',
+    'json': 'application/json',
+    'jpg': 'image/jpeg'
+}
+
+
 def task2_data_handler(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
     # TODO: Task 2: Serve static content based on request URL (20%)
-    pass
+    def get_mime_type(file_name: str):
+        return suffix_to_mime[file_name[file_name.rindex('.') + 1:]]
+
+    file_path = f'.{request.request_target}'
+    if not os.path.exists(file_path):
+        response.status_code, response.reason = 404, 'Not Found'
+        return
+
+    with open(file_path, "rb") as file:
+        response.status_code, response.reason = 200, 'OK'
+        response.add_header(name='Content-Type', value=get_mime_type(request.request_target))
+        content = file.read()
+        response.add_header(name='Content-Length', value=str(len(content)))
+        response.body = content
 
 
 def task3_json_handler(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
@@ -29,11 +52,13 @@ def task3_json_handler(server: HTTPServer, request: HTTPRequest, response: HTTPR
         binary_data = request.read_message_body()
         obj = json.loads(binary_data)
         # TODO: Task 3: Store data when POST
-        pass
+        server.task3_data = obj['data']
+        print(f'\033[32m{server.task3_data}\033[0m\n')
     else:
         obj = {'data': server.task3_data}
-        return_binary = json.dumps(obj).encode()
-        pass
+        response.add_header(name='Content-Type', value='application/json')
+        response.body = json.dumps(obj).encode()
+        response.add_header(name='Content-Length', value=str(len(response.body)))
 
 
 def task4_url_redirection(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
@@ -79,7 +104,7 @@ def task5_session_getimage(server: HTTPServer, request: HTTPRequest, response: H
 
 
 # TODO: Change this to your student ID, otherwise you may lost all of your points
-YOUR_STUDENT_ID = 12010000
+YOUR_STUDENT_ID = 12010324
 
 http_server = HTTPServer(config.LISTEN_PORT)
 http_server.register_handler("/", default_handler)

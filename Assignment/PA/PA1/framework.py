@@ -44,16 +44,37 @@ class HTTPRequest:
         :return:
         """
         # TODO: Task1, read from socket and fill HTTPRequest object fields
+        def parse_status_line(status_line: bytes):
+            method, target, http_version = status_line.split(b' ')
+            method = method.decode(encoding='utf-8')
+            target = target.decode(encoding='utf-8')
+            http_version = http_version.decode(encoding='utf-8')
+            return method, target, http_version
+
+        def parse_http_header(header_bytes: bytes):
+            name, value = header_bytes.split(b': ')
+            name = name.decode(encoding='utf-8')
+            value = value.decode(encoding='utf-8')
+            return HTTPHeader(name=name, value=value)
+
+        request = self.socket.recv(2048).split(b'\r\n')
+        self.method, self.request_target, self.http_version = parse_status_line(request[0])
+        for i in range(1, len(request)):
+            if request[i] == b'':
+                self.buffer = request[i + 1:]
+                break
+            self.headers.append(parse_http_header(request[i]))
 
         # Debug: print http request
-        print(f"{self.method} {self.request_target} {self.http_version}")
+        print(f"\n\033[32m{self.method} {self.request_target} {self.http_version}\033[0m")
         for h in self.headers:
-            print(f"{h.name}: {h.value}")
+            print(f"\033[32m{h.name}: {h.value}\033[0m")
         print()
 
     def read_message_body(self) -> bytes:
         # TODO: Task 3: complete read_message_body here
-        pass
+        self.body_length = int(self.get_header('Content-Length'))
+        return b''.join(self.buffer)
 
     def get_header(self, key: str) -> Union[str, None]:
         for h in self.headers:
@@ -80,8 +101,17 @@ class HTTPResponse:
         set status_line, and write status_line, headers and message body (if exists) into self.socket
         :return:
         """
+        def make_header(http_header: HTTPHeader):
+            return f'{http_header.name}: {http_header.value}\r\n'
+
         # TODO: Task1, construct response from fields and write binary data to socket
-        pass
+        response = f'{self.http_version} {self.status_code} {self.reason}\r\n'
+        for header in self.headers:
+            response = response + make_header(header)
+        response = response + "\r\n"
+        print(response)
+        response = bytes(response, encoding='utf-8') + self.body
+        self.socket.send(response)
 
     def add_header(self, name: str, value: str):
         self.headers.append(HTTPHeader(name, value))

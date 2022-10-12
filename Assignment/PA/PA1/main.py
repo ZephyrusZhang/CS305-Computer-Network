@@ -50,7 +50,7 @@ def task3_json_handler(server: HTTPServer, request: HTTPRequest, response: HTTPR
     response.status_code, response.reason = 200, 'OK'
     if request.method == 'POST':
         binary_data = request.read_message_body()
-        obj = json.loads(binary_data)
+        obj = json.loads(binary_data.replace(b"'", b'"'))
         # TODO: Task 3: Store data when POST
         server.task3_data = obj['data']
         print(f'\033[32m{server.task3_data}\033[0m\n')
@@ -63,7 +63,8 @@ def task3_json_handler(server: HTTPServer, request: HTTPRequest, response: HTTPR
 
 def task4_url_redirection(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
     # TODO: Task 4: HTTP 301 & 302: URL Redirection (10%)
-    pass
+    response.status_code, response.reason = 302, 'Found'
+    response.add_header(name='Location', value='http://127.0.0.1:8080/data/index.html')
 
 
 def task5_test_html(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
@@ -76,14 +77,29 @@ def task5_cookie_login(server: HTTPServer, request: HTTPRequest, response: HTTPR
     # TODO: Task 5: Cookie, Step 1 Login Authorization
     obj = json.loads(request.read_message_body())
     if obj["username"] == 'admin' and obj['password'] == 'admin':
-        pass
+        response.status_code, response.reason = 200, 'OK'
+        response.add_header(name='Set-Cookie', value='Authenticated=yes')
     else:
-        pass
+        response.status_code, response.reason = 403, 'Forbidden'
 
 
 def task5_cookie_getimage(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
     # TODO: Task 5: Cookie, Step 2 Access Protected Resources
-    pass
+    try:
+        cookie = {i.split('=')[0]: i.split('=')[1] for i in request.get_header(key='Cookie').split(';')}
+    except AttributeError:
+        response.status_code, response.reason = 403, 'Forbidden'
+        return
+
+    if cookie['Authenticated'] == 'yes':
+        response.status_code, response.reason = 200, 'OK'
+        with open('./data/test.jpg', 'rb') as file:
+            response.add_header(name='Content-Type', value=suffix_to_mime['jpg'])
+            content = file.read()
+            response.add_header(name='Content-Length', value=str(len(content)))
+            response.body = content
+    else:
+        response.status_code, response.reason = 403, 'Forbidden'
 
 
 def task5_session_login(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
@@ -93,14 +109,30 @@ def task5_session_login(server: HTTPServer, request: HTTPRequest, response: HTTP
         session_key = random_string()
         while session_key in server.session:
             session_key = random_string()
-        pass
+        server.session[session_key] = obj['username']
+        response.status_code, response.reason = 200, 'OK'
+        response.add_header(name='Set-Cookie', value=f'SESSION_KEY={session_key}')
     else:
         response.status_code, response.reason = 403, 'Forbidden'
 
 
 def task5_session_getimage(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
     # TODO: Task 5: Cookie, Step 2 Access Protected Resources
-    pass
+    try:
+        cookie = {i.split('=')[0]: i.split('=')[1] for i in request.get_header(key='Cookie').split(';')}
+    except AttributeError:
+        response.status_code, response.reason = 403, 'Forbidden'
+        return
+
+    if cookie['SESSION_KEY'] in server.session:
+        response.status_code, response.reason = 200, 'OK'
+        with open('./data/test.jpg', 'rb') as file:
+            response.add_header(name='Content-Type', value=suffix_to_mime['jpg'])
+            content = file.read()
+            response.add_header(name='Content-Length', value=str(len(content)))
+            response.body = content
+    else:
+        response.status_code, response.reason = 403, 'Forbidden'
 
 
 # TODO: Change this to your student ID, otherwise you may lost all of your points

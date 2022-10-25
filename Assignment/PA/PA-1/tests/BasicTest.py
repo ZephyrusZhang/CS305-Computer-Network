@@ -4,6 +4,7 @@ import unittest
 try:
     import main
 except ModuleNotFoundError:
+    print('Fuck yeah')
     from .. import main
 
 

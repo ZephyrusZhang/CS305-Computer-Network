@@ -1,10 +1,7 @@
-import random
-import string
 import unittest
+
 import requests
 import tests.BasicTest
-import requests
-import os
 
 
 class TestTask5Session(tests.BasicTest.BasicTest):
@@ -49,6 +46,7 @@ class TestTask5Session(tests.BasicTest.BasicTest):
         self.assertEqual(int(resp.headers['Content-Length']), flen)
         self.assertIn(resp.headers['Content-Type'], ['image/jpeg', 'image/jpg'])
         self.assertEqual(resp.content, b'')
+
 
 if __name__ == '__main__':
     unittest.main()

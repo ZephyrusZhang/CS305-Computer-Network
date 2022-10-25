@@ -50,7 +50,8 @@ def task3_json_handler(server: HTTPServer, request: HTTPRequest, response: HTTPR
     response.status_code, response.reason = 200, 'OK'
     if request.method == 'POST':
         binary_data = request.read_message_body()
-        obj = json.loads(binary_data.replace(b"'", b'"'))
+        print(binary_data)
+        obj = json.loads(binary_data)
         # TODO: Task 3: Store data when POST
         server.task3_data = obj['data']
         print(f'\033[32m{server.task3_data}\033[0m\n')

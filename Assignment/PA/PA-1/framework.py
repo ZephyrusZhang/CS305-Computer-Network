@@ -57,7 +57,13 @@ class HTTPRequest:
             value = value.decode(encoding='utf-8')
             return HTTPHeader(name=name, value=value)
 
-        request = self.socket.recv(2048).split(b'\r\n')
+        self.buffer = b''
+        while b'\r\n\r\n' not in self.buffer:
+            self.buffer += self.socket.recv(4096)
+        header_end_index = self.buffer.find(b'\r\n\r\n')
+        request = self.buffer[0:header_end_index].split(b'\r\n')
+        self.buffer = self.buffer[header_end_index + 4:]
+
         self.method, self.request_target, self.http_version = parse_status_line(request[0])
         for i in range(1, len(request)):
             if request[i] == b'':
@@ -73,8 +79,16 @@ class HTTPRequest:
 
     def read_message_body(self) -> bytes:
         # TODO: Task 3: complete read_message_body here
+        content_length_str = self.get_header(key='Content-Length')
+        if content_length_str:
+            while len(self.buffer) < int(content_length_str):
+                self.buffer += self.socket.recv(2048)
+            self.buffer = self.buffer[:int(content_length_str)]
+
+        print(f'\n\033[32m{self.buffer}\033[0m\n')
+
         self.body_length = int(self.get_header('Content-Length'))
-        return b''.join(self.buffer)
+        return self.buffer
 
     def get_header(self, key: str) -> Union[str, None]:
         for h in self.headers:
@@ -111,7 +125,7 @@ class HTTPResponse:
         response = response + "\r\n"
         print(response)
         response = bytes(response, encoding='utf-8') + self.body
-        self.socket.send(response)
+        self.socket.sendall(response)
 
     def add_header(self, name: str, value: str):
         self.headers.append(HTTPHeader(name, value))

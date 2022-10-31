@@ -159,6 +159,7 @@ class HTTPServer:
         self.router.append(Route(path, allowed_methods, handler))
 
     def __client_run__(self, client_socket: socket.socket, source_address):
+        # noinspection PyBroadException
         try:
             request = HTTPRequest(client_socket)
             request.read_headers()

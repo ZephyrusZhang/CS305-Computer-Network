@@ -26,4 +26,4 @@
 
    After the TCP connection is established.
 
-7. The `alice.txt` on the hard drive is 152,138 bytes, and the download time is 1.578736000 (First TCP segment) ‐ 0.271257000 (last ACK) = 1.307479 second. Therefore, the throughput for the TCP connection is computed as 152,138/1.307479=116359.803867 bytes/second.
+7. The `alice.txt` on the hard drive is 152,136 bytes, and the download time is 5.651141 (Last TCP segment) ‐ 0 (First TCP segment) = 5.651141 second. Therefore, the throughput for the TCP connection is computed as 152,136/5.651141=26921.28899 bytes/second.

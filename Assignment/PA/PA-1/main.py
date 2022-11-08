@@ -1,10 +1,15 @@
 import json
+import mimetypes
 import os
 import random
 import string
 
 import config
 from framework import HTTPServer, HTTPRequest, HTTPResponse
+
+
+mimetypes.add_type('application/javascript', '.js')
+mimetypes.add_type('image/jpeg', '.jpg')
 
 
 def random_string(length=20):
@@ -27,15 +32,19 @@ suffix_to_mime = {
 }
 
 
-def response_body_check(request: HTTPRequest, response: HTTPResponse):
-    if request.method == 'HEAD':
-        response.body = b''
+# def response_body_check(request: HTTPRequest, response: HTTPResponse):
+#     if request.method == 'HEAD':
+#         response.body = b''
+
+
+def get_mimetype(url: str):
+    return mimetypes.guess_type(url)[0]
 
 
 def task2_data_handler(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
     # TODO: Task 2: Serve static content based on request URL (20%)
-    def get_mime_type(file_name: str):
-        return suffix_to_mime[file_name[file_name.rindex('.') + 1:]]
+    # def get_mime_type(file_name: str):
+    #     return suffix_to_mime[file_name[file_name.rindex('.') + 1:]]
 
     file_path = f'.{request.request_target}'
     if not os.path.exists(file_path):
@@ -44,11 +53,12 @@ def task2_data_handler(server: HTTPServer, request: HTTPRequest, response: HTTPR
 
     with open(file_path, "rb") as file:
         response.status_code, response.reason = 200, 'OK'
-        response.add_header(name='Content-Type', value=get_mime_type(request.request_target))
+        # response.add_header(name='Content-Type', value=get_mime_type(request.request_target))
+        response.add_header(name='Content-Type', value=get_mimetype(request.request_target))
         content = file.read()
         response.add_header(name='Content-Length', value=str(len(content)))
         response.body = content
-        response_body_check(request, response)
+        # response_body_check(request, response)
 
 
 def task3_json_handler(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
@@ -66,7 +76,7 @@ def task3_json_handler(server: HTTPServer, request: HTTPRequest, response: HTTPR
         response.add_header(name='Content-Type', value='application/json')
         response.body = json.dumps(obj).encode()
         response.add_header(name='Content-Length', value=str(len(response.body)))
-        response_body_check(request, response)
+        # response_body_check(request, response)
 
 
 def task4_url_redirection(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
@@ -102,11 +112,12 @@ def task5_cookie_getimage(server: HTTPServer, request: HTTPRequest, response: HT
     if cookie['Authenticated'] == 'yes':
         response.status_code, response.reason = 200, 'OK'
         with open('./data/test.jpg', 'rb') as file:
-            response.add_header(name='Content-Type', value=suffix_to_mime['jpg'])
+            # response.add_header(name='Content-Type', value=suffix_to_mime['jpg'])
+            response.add_header(name='Content-Type', value=get_mimetype('/data/test.jpg'))
             content = file.read()
             response.add_header(name='Content-Length', value=str(len(content)))
             response.body = content
-            response_body_check(request, response)
+            # response_body_check(request, response)
     else:
         response.status_code, response.reason = 403, 'Forbidden'
 
@@ -136,11 +147,12 @@ def task5_session_getimage(server: HTTPServer, request: HTTPRequest, response: H
     if cookie['SESSION_KEY'] in server.session:
         response.status_code, response.reason = 200, 'OK'
         with open('./data/test.jpg', 'rb') as file:
-            response.add_header(name='Content-Type', value=suffix_to_mime['jpg'])
+            # response.add_header(name='Content-Type', value=suffix_to_mime['jpg'])
+            response.add_header(name='Content-Type', value=get_mimetype('/data/test.jpg'))
             content = file.read()
             response.add_header(name='Content-Length', value=str(len(content)))
             response.body = content
-            response_body_check(request, response)
+            # response_body_check(request, response)
     else:
         response.status_code, response.reason = 403, 'Forbidden'
 

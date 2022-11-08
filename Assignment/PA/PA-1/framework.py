@@ -123,8 +123,8 @@ class HTTPResponse:
         for header in self.headers:
             response = response + make_header(header)
         response = response + "\r\n"
+        print("\033[34m" + response + "\033[0m")
         response = bytes(response, encoding='utf-8') + self.body
-        print(response)
         self.socket.sendall(response)
 
     def add_header(self, name: str, value: str):
@@ -173,6 +173,8 @@ class HTTPServer:
                 if route:
                     if request.method in route.allowed_methods:
                         route.handler(self, request, response)
+                        if request.method == 'HEAD':
+                            response.body = b''
                     else:
                         (response.status_code, response.reason) = 405, "Method Not Allowed"
                 else:

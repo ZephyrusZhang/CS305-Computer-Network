@@ -22,16 +22,6 @@ def default_handler(server: HTTPServer, request: HTTPRequest, response: HTTPResp
     print(f"calling default handler for url {request.request_target}")
 
 
-suffix_to_mime = {
-    'txt': 'text/plain',
-    'html': 'text/html',
-    'css': 'tex/css',
-    'js': 'text/javascript',
-    'json': 'application/json',
-    'jpg': 'image/jpeg'
-}
-
-
 def get_mimetype(url: str):
     return mimetypes.guess_type(url)[0]
 

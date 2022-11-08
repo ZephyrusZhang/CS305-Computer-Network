@@ -123,8 +123,8 @@ class HTTPResponse:
         for header in self.headers:
             response = response + make_header(header)
         response = response + "\r\n"
-        print(response)
         response = bytes(response, encoding='utf-8') + self.body
+        print(response)
         self.socket.sendall(response)
 
     def add_header(self, name: str, value: str):

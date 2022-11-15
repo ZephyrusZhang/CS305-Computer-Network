@@ -17,7 +17,6 @@ def random_string(length=20):
 
 
 def default_handler(server: HTTPServer, request: HTTPRequest, response: HTTPResponse):
-    # TODO: Task 1: HTTP Message encapsulation and de-encapsulation (20%)
     response.status_code, response.reason = 404, 'Not Found'
     print(f"calling default handler for url {request.request_target}")
 

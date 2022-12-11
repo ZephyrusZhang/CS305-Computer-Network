@@ -10,6 +10,27 @@ PING_TIMEOUT = 3
 
 
 def ping(address, n=4, payload=None, id=None):
+    """
+        Create ICMPRequest and send through socket, then receive and parse reply.
+
+        Hint: use ICMPSocket.send() to send packet and use ICMPSocket.receive() to receive
+
+        Parameter
+        ---------
+        address : str
+            IP of destination.
+        n : int
+            The number of ICMP request.
+        payload : bytes
+            Payload of datagram
+        id : int
+            The identifier of ICMP Request.
+
+        Returns
+        -------
+        out : Host
+            Ping result.
+    """
     if is_hostname(address):
         address = resolve(address)[0]
 
@@ -19,25 +40,7 @@ def ping(address, n=4, payload=None, id=None):
     reply = None
     packets_sent = 0
     rtts = []
-    ###############################
     # TODO:
-    # Create ICMPRequest and send through socket,
-    # then receive and parse reply
-    #
-    # :type n: int
-    # :param n: The number of ICMP request
-    #
-    # :type payload: bytes
-    # :param payload: The payload in ICMP Request
-    #
-    # :type id: int
-    # :param id: The identifier of ICMP Request
-    #
-    # :rtype: Host
-    # :returns: ping result
-    #
-    # Hint: use ICMPSocket.send() to send packet and use ICMPSocket.receive() to receive
-    ################################
     for idx in range(n):
         request = ICMPRequest(address, id, idx, payload)
         start = time()

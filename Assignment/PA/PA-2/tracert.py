@@ -12,6 +12,23 @@ MAX_HOP = 30
 
 
 def tracert(address, id=None):
+    """
+        Create ICMPRequest and send through socket, then receive and parse reply, remember to modify ttl when creating ICMPRequest.
+
+        Hint: use ICMPSocket.send() to send packet and use ICMPSocket.receive() to receive
+
+        Parameter
+        ---------
+        address : str
+            IP of destination.
+        id : int
+            The identifier of ICMP Request.
+
+        Returns
+        -------
+        out : List[Host]
+            Ping result.
+    """
     if is_hostname(address):
         address = resolve(address)[0]
 
@@ -27,22 +44,7 @@ def tracert(address, id=None):
         packets_sent = 0
         rtts = []
 
-        ###############################
         # TODO:
-        # Create ICMPRequest and send through socket,
-        # then receive and parse reply,
-        # remember to modify ttl when creating ICMPRequest
-        #
-        #
-        # :type id: int
-        # :param id: The identifier of ICMP Request
-        #
-        # :rtype: Host[]
-        # :returns: ping result
-        #
-        # Hint: use ICMPSocket.send() to send packet and use ICMPSocket.receive() to receive
-        #
-        ################################
         for idx in range(n):
             request = ICMPRequest(address, id, idx, b'hello world')
             request._ttl = ttl

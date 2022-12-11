@@ -61,7 +61,6 @@ class ICMPSocket:
     def _create_socket(self, type):
         """
         Create and return a new socket.
-
         """
         return socket.socket(
             family=socket.AF_INET,
@@ -80,19 +79,22 @@ class ICMPSocket:
             ttl)
 
     def _checksum(self, data: bytes):
+        """
+            Compute the checksum of an ICMP packet. Checksums are used to verify the integrity of packets.
+
+            Hint: if the length of data is even, add a b'\x00' to the end of data according to RFC
+
+            Parameter
+            ---------
+            data : bytes
+                The data you are going to send, calculate checksum according to this.
+
+            Returns
+            -------
+            out : int
+                Checksum calculated from data.
+        """
         # TODO:
-        # Compute the checksum of an ICMP packet. Checksums are used to
-        # verify the integrity of packets.
-        #
-        # :type data: bytes
-        # :param data: The data you are going to send, calculate checksum
-        # according to this.
-        #
-        # :rtype: int
-        # :returns: checksum calculated from data
-        #
-        # Hint: if the length of data is even, add a b'\x00' to the end of data
-        # according to RFC
         if len(data) % 2 != 0:
             data += b'\x00'
         n = len(data)
@@ -109,50 +111,68 @@ class ICMPSocket:
         return checksum
 
     def _check_data(self, data, checksum):
+        """
+            Verify the given data with checksum of an ICMP packet. Checksums are used to verify the integrity of packets.
+
+            Hint: if the length of data is even, add a b'\x00' to the end of data according to RFC
+
+            Parameter
+            ---------
+            data : bytes
+                The data you received, verify its correctness with checksum.
+            checksum : int
+                The checksum you received, use it to verify data.
+
+            Returns
+            -------
+            out : bool
+                whether the data matches the checksum
+        """
         # TODO:
-        # Verify the given data with checksum of an ICMP packet. Checksums are used to
-        # verify the integrity of packets.
-        #
-        # :type data: bytes
-        # :param data: The data you received, verify its correctness with checksum
-        #
-        # :type checksum: int
-        # :param checksum: The checksum you received, use it to verify data.
-        #
-        # :rtype: boolean
-        # :returns: whether the data matches the checksum
-        #
-        # Hint: if the length of data is even, add a b'\x00' to the end of data
-        # according to RFC
         return self._checksum(data) == checksum
 
     def _create_packet(self, request: ICMPRequest):
+        """
+            Build an ICMP packet from an ICMPRequest, you can get a sequence number and a payload.
+            This method returns the newly created ICMP header concatenated to the payload passed in parameters.
+
+            tips: the 'checksum' in ICMP header needs to be calculated and updated
+
+            Parameter
+            ---------
+            request : ICMPRequest
+                The ICMP request you want to create from
+
+            Returns
+            -------
+            out : bytes
+                an ICMP header+payload in bytes format
+        """
         # TODO:
-        # Build an ICMP packet from an ICMPRequest, you can get a sequence number and
-        # a payload.
-        #
-        # This method returns the newly created ICMP header concatenated
-        # to the payload passed in parameters.
-        #
-        # tips: the 'checksum' in ICMP header needs to be calculated and updated
-        # :rtype: bytes
-        # :returns: an ICMP header+payload in bytes format
         header = struct.pack('!bbHHh', self._ICMP_REQUEST_TYPE, self._ICMP_REQUEST_CODE, 0, request.id, request.sequence)
         checksum = self._checksum(header + request.payload)
         header = struct.pack('!bbHHh', self._ICMP_REQUEST_TYPE, self._ICMP_REQUEST_CODE, checksum, request.id, request.sequence)
         return header + request.payload
 
     def _parse_reply(self, packet, source, current_time):
+        """
+            Parse an ICMP reply from bytes.
+
+            Parameter
+            ---------
+            packet : bytes
+                IP packet with ICMP as its payload
+            source : str
+                The source IP of reply packet
+            current_time : float
+                The timestamp of the ICMP reply.
+
+            Returns
+            -------
+            out : ICMPReply
+                An ICMPReply parsed from packet
+        """
         # TODO:
-        # Parse an ICMP reply from bytes.
-        #
-        # Read sequence, type and code from packet 
-        #
-        # :type packet: bytes
-        # :param packet: IP packet with ICMP as its payload
-        #
-        # :rtype: ICMPReply
-        # :returns: an ICMPReply parsed from packet
         type, code, checksum, id, sequence = struct.unpack('!bbHHh', packet[self._ICMP_HEADER_OFFSET:self._ICMP_HEADER_OFFSET + 8])
         # TODO: 检验checksum
         if type != 0:

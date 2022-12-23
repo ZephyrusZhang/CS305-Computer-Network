@@ -26,6 +26,8 @@ class ICMPSocket:
     _ICMP_REQUEST_TYPE = 8
     _ICMP_REQUEST_CODE = 0
 
+    _ICMP_HEADER_FORMAT = '!bbHHh'
+
     def __init__(self, address=None, privileged=True):
         self._sock = None
         self._address = address
@@ -149,9 +151,9 @@ class ICMPSocket:
                 an ICMP header+payload in bytes format
         """
         # TODO:
-        header = struct.pack('!bbHHh', self._ICMP_REQUEST_TYPE, self._ICMP_REQUEST_CODE, 0, request.id, request.sequence)
+        header = struct.pack(self._ICMP_HEADER_FORMAT, self._ICMP_REQUEST_TYPE, self._ICMP_REQUEST_CODE, 0, request.id, request.sequence)
         checksum = self._checksum(header + request.payload)
-        header = struct.pack('!bbHHh', self._ICMP_REQUEST_TYPE, self._ICMP_REQUEST_CODE, checksum, request.id, request.sequence)
+        header = struct.pack(self._ICMP_HEADER_FORMAT, self._ICMP_REQUEST_TYPE, self._ICMP_REQUEST_CODE, checksum, request.id, request.sequence)
         return header + request.payload
 
     def _parse_reply(self, packet, source, current_time):
@@ -172,11 +174,13 @@ class ICMPSocket:
             out : ICMPReply
                 An ICMPReply parsed from packet
         """
-        # TODO:
-        type, code, checksum, id, sequence = struct.unpack('!bbHHh', packet[self._ICMP_HEADER_OFFSET:self._ICMP_HEADER_OFFSET + 8])
         # TODO: 检验checksum
+        if self._checksum(packet[self._ICMP_HEADER_OFFSET:]) != 0:
+            raise ICMPSocketError('Wrong Checksum')
+
+        type, code, checksum, id, sequence = struct.unpack(self._ICMP_HEADER_FORMAT, packet[self._ICMP_HEADER_OFFSET:self._ICMP_HEADER_OFFSET + 8])
         if type != 0:
-            _, _, checksum, id, sequence = struct.unpack('!bbHHh', packet[2 * self._ICMP_HEADER_OFFSET + 8:2*(self._ICMP_HEADER_OFFSET + 8)])
+            _, _, checksum, id, sequence = struct.unpack(self._ICMP_HEADER_FORMAT, packet[2 * self._ICMP_HEADER_OFFSET + 8:2*(self._ICMP_HEADER_OFFSET + 8)])
         return ICMPReply(
             source=source,
             id=id,
